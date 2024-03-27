@@ -25,7 +25,7 @@ owner_state(_).
     .print("Hello world");
     // performs an action that creates a new artifact of type ThingArtifact, named "wristband" using the WoT TD located at Url
     // the action unifies ArtId with the ID of the artifact in the workspace
-    makeArtifact("wristband", "org.hyperagents.jacamo.artifacts.wot.ThingArtifact", [Url], ArtId);
+    makeArtifact("wristband", "wot.ThingArtifact", [Url], ArtId);
     !read_owner_state. // creates the goal !read_owner_state
 
 /* 

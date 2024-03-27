@@ -21,7 +21,12 @@ repositories {
 
 dependencies {
     implementation('org.jacamo:jacamo:1.1')
-    implementation ('com.github.HyperAgents:jacamo-hypermedia:main-SNAPSHOT')
+    implementation group: 'com.github.Interactions-HSG', name: 'wot-td-java', version: 'master-SNAPSHOT'
+
+    implementation 'org.apache.httpcomponents.client5:httpclient5-fluent:5.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.google.code.gson:gson:2.8.6'
 }
 
 sourceSets {
