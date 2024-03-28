@@ -7,7 +7,7 @@
 td("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#CalendarService", "https://raw.githubusercontent.com/Interactions-HSG/example-tds/was/tds/calendar-service.ttl").
 
 /* Initial goals */ 
-calenderState("now").
+calenderState(_).
 
 // The agent has the goal to start
 !start.
@@ -44,6 +44,7 @@ calenderState("now").
 */
 @owner_state_plan
 +calenderState(State) : true <-
+    .send(personal_assistant,tell,calenderState(State));
     .print("The calender is ", State).
 
 
