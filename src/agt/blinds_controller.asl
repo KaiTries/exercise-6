@@ -22,7 +22,18 @@ blinds("lowered").
 */
 @start_plan
 +!start : td("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#Blinds", Url) <-
-    .print("Hello world").
+    .print("Hello world");
+    makeArtifact("blinds", "org.hyperagents.jacamo.artifacts.wot.ThingArtifact", [Url], ArtId);
+    !set_blinds("raised").
+
+
++!set_blinds(BlindsState) : true <-
+    .print("Setting blinds to ", BlindsState);
+    invokeAction("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#SetState", [BlindsState]);
+    -+blinds(BlindsState).
+
++blinds(State) : true <-
+    .print("The blinds are ", State).
 
 /* Import behavior of agents that work in CArtAgO environments */
 { include("$jacamoJar/templates/common-cartago.asl") }

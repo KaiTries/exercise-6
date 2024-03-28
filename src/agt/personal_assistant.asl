@@ -13,7 +13,20 @@
 */
 @start_plan
 +!start : true <-
-    .print("Hello world").
+    .print("Hello world");
+    !setupTool(C);
+    !useDweet("HelloItsMe").
 
+
++!setupTool(C): true <- 
+    makeArtifact("c0","room.DweetArtifact",[],C).
+
+
++!useDweet(Dweet): true <-
+    .print("Sending dweet ",Dweet);
+    sendDweet(Dweet,Response);
+    .print("The response is ",Response).
+
+    
 /* Import behavior of agents that work in CArtAgO environments */
 { include("$jacamoJar/templates/common-cartago.asl") }
