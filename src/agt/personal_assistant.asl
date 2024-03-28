@@ -27,6 +27,14 @@
     sendDweet(Dweet,Response);
     .print("The response is ",Response).
 
+
++calenderState("now"): true & owner_state("awake") <-
+    .print("Enjoy your event").
+
++calenderState("now"): true <-
+    .print("Starting wake up routine").
+
+
     
 /* Import behavior of agents that work in CArtAgO environments */
 { include("$jacamoJar/templates/common-cartago.asl") }
