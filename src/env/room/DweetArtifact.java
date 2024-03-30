@@ -1,45 +1,49 @@
 package room;
+
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import java.io.IOException;
 import java.net.URI;
+
 import cartago.Artifact;
 import cartago.OPERATION;
-import cartago.OpFeedbackParam;
-
-
 
 /**
- * A CArtAgO artifact that provides an operation for sending messages to agents 
+ * A CArtAgO artifact that provides an operation for sending messages to agents
  * with KQML performatives using the dweet.io API
  */
 public class DweetArtifact extends Artifact {
 
+    private String dweetURI = "https://dweet.io/dweet/for/kai_exercise6";
 
-    private String dweetURI = "https://dweet.io/dweet/for/kai_exercise6?";
+    public void init() {
+    }
 
     @OPERATION
-    void sendDweet(String message, OpFeedbackParam<String> response) {
-        String requestURI = dweetURI + message;
-        // Send the message to the dweet.io API
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(requestURI))
-            .build();
-
-        // Send the request to the dweet.io API
-        HttpResponse<String> httpResponse = null;
+    public void sendDweet(String action, String receiver, String performative, String content) {
         try {
-            httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException | InterruptedException e) {
+            URI uri = new URI(dweetURI);
+
+            String payload = "{ \"action\": \"" + action + "\", \"receiver\": \"" + receiver
+                    + "\", \"performative\": \""
+                    + performative + "\", \"content\": \"" + content + "\" }";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload))
+                    .build();
+
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new RuntimeException("HTTP error code : " + response.statusCode());
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-
-        // Set the response to the dweet response
-        response.set(httpResponse.body());
     }
-    
 }

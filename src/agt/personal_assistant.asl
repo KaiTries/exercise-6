@@ -2,7 +2,7 @@
 
 /* Initial goals */ 
 artificial_light(1).
-natural_ligth(0).
+natural_light(0).
 best_option(Option):- Option = 0.
 
 
@@ -39,39 +39,47 @@ all_proposals_received(CNPId,NP) :-              // NP = number of participants
     !setupTool(C).
     //!useDweet("HelloItsMe").
 
-// creates the dweet artifact
+@create_dweetArtifact_plan
 +!setupTool(C): true <- 
     makeArtifact("c0","room.DweetArtifact",[],C).
 
-// sends a dweet
-+!useDweet(Dweet): true <-
-    .print("Sending dweet ",Dweet);
-    sendDweet(Dweet,Response);
-    .print("The response is ",Response).
+@send_dweet_plan
++!useDweet(Action, Receiver, Performative, Content): true <-
+    sendDweet(Action, Receiver, Performative, Content).
 
-// if the user is awake and the event is now, the agent will print a message
+@calender_now_owner_awake_plan
 +calendarState("now"): owner_state("awake") <- 
     .print("Enjoy your event").
 
-// if the user is asleep and the event is now, the agent will start the wake up routine
+@owner_awake_calender_now_plan
++owner_state("awake"): calendarState("now") <- 
+    .print("Enjoy your event").
+
+@calendar_now_owner_asleep_plan
 +calendarState("now"): owner_state("asleep") & noOneWon(false) <-
     .print("Starting wake up routine");
     !wakeUpRoutine.
 
-// if the user is asleep and the event is now and we have tried both options, the agent will message a friend for help
-// we will only send 5 dweets.
+@owner_asleep_calendar_now_plan
++owner_state("asleep"): calendarState("now") & noOneWon(false) <-
+    .print("Starting wake up routine");
+    !wakeUpRoutine.
+
+
+
+@calendar_now_owner_asleep_noOneWon_plan
 +calendarState("now"): owner_state("asleep") & noOneWon(true) & triedDweets(Num) & Num < 5 <-
     .print("Tried both raising blinds and turning on the lights. Messaging a friend for help.");
     -+triedDweets(Num + 1);
-    !useDweet("HelpMe!").
+    !useDweet(send, "alice, bob, eve", achieve, help_friend_to_wake_up(kai)).
 
 
-// starts the wakeup routine
+@start_wakeUpRoutine_plan
 +!wakeUpRoutine: true & taskId(Num) <-
     !cnp(Num, "increaseIlluminance");
     -+taskId(Num + 1).
 
-// start the CNP
+@cnp
 +!cnp(Id,Task) <- 
     !call(Id,Task,LP);
     !bid(Id,LP);
@@ -96,14 +104,27 @@ all_proposals_received(CNPId,NP) :-              // NP = number of participants
 +!bid(Id,LP) <- // the deadline of the CNP is now + 4 seconds (or all proposals received)
     .wait(all_proposals_received(Id,.length(LP)), 4000, _).
 
-+!winner(Id,LO,WAg) : .findall(offer(O,A),propose(Id,O)[source(A)],LO) & LO \== [] <- // there is a offer
+
+/*
+We do not need to set a prefered wakeup method if we just write the plan for the prefered method first since this will be the 
+plan that is called first. -> Implicit ordering of plans
+*/
++!winner(Id,LO,WAg) : .findall(offer(set_blinds("raised"),A),propose(Id,set_blinds("raised"))[source(A)],LO) & LO \== [] <- // there is a offer
     .print("Offers are ",LO);
     .min(LO,offer(WOf,WAg)); // the first offer is the best
     .print("Winner is ",WAg," with ",WOf).
 
++!winner(Id,LO,WAg) : .findall(offer(set_lights("on"),A),propose(Id,set_lights("on"))[source(A)],LO) & LO \== [] <- // there is a offer
+    .print("Offers are ",LO);
+    .min(LO,offer(WOf,WAg)); // the first offer is the best
+    .print("Winner is ",WAg," with ",WOf).
+
+
 +!winner(_,_,nowinner) <-
     -+noOneWon(true); // flag that no one won
-    .print("no winner"). // no offer case
+    .print("no winner. Asking a friend for help"); // no offer case
+    !useDweet(send, "alice, bob, eve", achieve, help_friend_to_wake_up(kai)).
+
 
 +!result(_,[],_).
 +!result(CNPId,[offer(_,WAg)|T],WAg) <- // announce result to the winner
