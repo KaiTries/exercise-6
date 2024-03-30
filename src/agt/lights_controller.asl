@@ -10,6 +10,10 @@ td("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#Lights", "http
 lights("off").
 
 /* Initial goals */ 
+!register.
+
++!register <- .df_register("participant");
+              .df_subscribe("initiator").
 
 // The agent has the goal to start
 !start.
@@ -22,19 +26,43 @@ lights("off").
 */
 @start_plan
 +!start : td("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#Lights", Url) <-
-    .print("Hello world");
-    makeArtifact("lights", "org.hyperagents.jacamo.artifacts.wot.ThingArtifact", [Url], ArtId);
-    !set_lights("on").
-
+    makeArtifact("lights", "org.hyperagents.jacamo.artifacts.wot.ThingArtifact", [Url], ArtId).
 
 +!set_lights(LightsState) : true <-
-    .print("Setting lights to ", LightsState);
     invokeAction("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#SetState", [LightsState]);
-    -+blinds(LightsState).
+    -+lights(LightsState).
 
-+blinds(State) : true <-
-    .send(personal_assistant,tell,lights(State));
++lights(State) : true <-
+    .send(personal_assistant,untell,lights(_)); // remove old belief
+    .send(personal_assistant,tell,lights(State)); // tell the new belief
     .print("The lights are ", State).
+
+
+
+
+// answer to Call For Proposal
++cfp(CNPId,Task)[source(personal_assistant)]:  provider(personal_assistant,"initiator") & lights("off") <- 
+    +proposal(CNPId,Task,set_lights("on")); // remember my proposal
+    .send(personal_assistant,tell,propose(CNPId,set_lights("on"))).
+
+// plan to refuse a Call For Proposal
++cfp(CNPId,_Service)[source(personal_assistant)]:  provider(personal_assistant,"initiator") & lights("on") <- 
+    .send(personal_assistant,tell,refuse(CNPId)).
+
+
+// plan if I won the Call For Proposal
++accept_proposal(CNPId): proposal(CNPId,Task,Offer) <- 
+    .print("My proposal '",Offer,"' won CNP ",CNPId, " for ",Task,"!");
+    !Offer. // do the task
+
+
+// plan if I lost the Call For Proposal 
++reject_proposal(CNPId) <- 
+    .print("I lost CNP ",CNPId, ".");
+    -proposal(CNPId,_,_). // clear memory
+
+
+
 
 /* Import behavior of agents that work in CArtAgO environments */
 { include("$jacamoJar/templates/common-cartago.asl") }

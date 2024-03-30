@@ -10,6 +10,10 @@ td("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#Blinds", "http
 blinds("lowered").
 
 /* Initial goals */ 
+!register.
+
++!register <- .df_register("participant");
+              .df_subscribe("initiator").
 
 // The agent has the goal to start
 !start.
@@ -22,19 +26,41 @@ blinds("lowered").
 */
 @start_plan
 +!start : td("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#Blinds", Url) <-
-    .print("Hello world");
-    makeArtifact("blinds", "org.hyperagents.jacamo.artifacts.wot.ThingArtifact", [Url], ArtId);
-    !set_blinds("raised").
+    makeArtifact("blinds", "org.hyperagents.jacamo.artifacts.wot.ThingArtifact", [Url], ArtId).
 
-
+@blinds_plan
 +!set_blinds(BlindsState) : true <-
-    .print("Setting blinds to ", BlindsState);
+    .println("Setting blinds to ", BlindsState);
     invokeAction("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#SetState", [BlindsState]);
     -+blinds(BlindsState).
 
 +blinds(State) : true <-
-    .send(personal_assistant,tell,blinds(State));
+    .send(personal_assistant,untell,blinds(_)); // remove old belief
+    .send(personal_assistant,tell,blinds(State)); // tell the new belief
     .print("The blinds are ", State).
 
+
+
+// answer to Call For Proposal
++cfp(CNPId,Task)[source(personal_assistant)]:  provider(personal_assistant,"initiator") & blinds("lowered") <- 
+    +proposal(CNPId,Task,set_blinds("raised")); // remember my proposal
+    .send(personal_assistant,tell,propose(CNPId,set_blinds("raised"))).
+
+// plan to refuse a CFP
++cfp(CNPId,_Service)[source(personal_assistant)]:  provider(personal_assistant,"initiator") & blinds("raised") <- 
+    .send(personal_assistant,tell,refuse(CNPId)).
+
+// plan if I won the Call For Proposal
++accept_proposal(CNPId): proposal(CNPId,Task,Offer) <- 
+    .print("My proposal '",Offer,"' won CNP ",CNPId, " for ",Task,"!");
+    !Offer. // do the task
+
+// plan if I lost the Call For Proposal
++reject_proposal(CNPId) <- 
+    .print("I lost CNP ",CNPId, ".");
+    -proposal(CNPId,_,_). // clear memory
+
+
+    
 /* Import behavior of agents that work in CArtAgO environments */
 { include("$jacamoJar/templates/common-cartago.asl") }

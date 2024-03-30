@@ -53,7 +53,7 @@ owner_state(_).
 */
 @owner_state_plan
 +owner_state(State) : true <-
-    .send(personal_assistant,tell,owner_state(State));
+    .send(personal_assistant,tell,owner_state(State)); // send the current owner state to the personal assistant
     .print("The owner is ", State).
 
 /* Import behavior of agents that work in CArtAgO environments */

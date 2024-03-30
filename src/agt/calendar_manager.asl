@@ -12,40 +12,22 @@ calenderState(_).
 // The agent has the goal to start
 !start.
 
-/* 
- * Plan for reacting to the addition of the goal !start
- * Triggering event: addition of goal !start
- * Context: the agents believes that a WoT TD of a was:CalendarService is located at Url
- * Body: greets the user
-*/
 @start_plan
 +!start : td("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#CalendarService", Url) <-
-    .print("Hello world");
     makeArtifact("calender", "org.hyperagents.jacamo.artifacts.wot.ThingArtifact", [Url], ArtId);
-    !read_calender. // creates the goal
+    !read_calendar.
 
-
-
-@read_owner_state_plan
-+!read_calender : true <-
-    // performs an action that exploits the TD Property Affordance of type was:ReadOwnerState 
-    // the action unifies OwnerStateLst with a list holding the owner's state, e.g. ["asleep"]
++!read_calendar : true <-
     readProperty("https://was-course.interactions.ics.unisg.ch/wake-up-ontology#ReadUpcomingEvent",  UpcomingEventList);
-    .nth(0,UpcomingEventList,CalenderState); // performs an action that unifies OwnerState with the element of the list OwnerStateLst at index 0
-    -+calenderState(CalenderState); // updates the beleif owner_state 
+    .nth(0,UpcomingEventList,CalendarState); 
+    -+calendarState(CalendarState); 
     .wait(5000);
-    !read_calender. // creates the goal !read_owner_state
+    !read_calendar. 
 
-/* 
- * Plan for reacting to the addition of the belief !owner_state
- * Triggering event: addition of belief !owner_state
- * Context: true (the plan is always applicable)
- * Body: announces the current state of the owner
-*/
-@owner_state_plan
-+calenderState(State) : true <-
-    .send(personal_assistant,tell,calenderState(State));
-    .print("The calender is ", State).
++calendarState(State) : true <-
+    .send(personal_assistant,untell,calendarState(_)); // removes the current belief about the calendar state from the personal assistant
+    .send(personal_assistant,tell,calendarState(State)); // updates the personal assistant about the current calendar state
+    .print("The event is ", State).
 
 
 /* Import behavior of agents that work in CArtAgO environments */
