@@ -65,15 +65,6 @@ all_proposals_received(CNPId,NP) :-              // NP = number of participants
     .print("Starting wake up routine");
     !wakeUpRoutine.
 
-
-
-@calendar_now_owner_asleep_noOneWon_plan
-+calendarState("now"): owner_state("asleep") & noOneWon(true) & triedDweets(Num) & Num < 5 <-
-    .print("Tried both raising blinds and turning on the lights. Messaging a friend for help.");
-    -+triedDweets(Num + 1);
-    !useDweet(send, "alice, bob, eve", achieve, help_friend_to_wake_up(kai)).
-
-
 @start_wakeUpRoutine_plan
 +!wakeUpRoutine: true & taskId(Num) <-
     !cnp(Num, "increaseIlluminance");
@@ -112,11 +103,13 @@ plan that is called first. -> Implicit ordering of plans
 +!winner(Id,LO,WAg) : .findall(offer(set_blinds("raised"),A),propose(Id,set_blinds("raised"))[source(A)],LO) & LO \== [] <- // there is a offer
     .print("Offers are ",LO);
     .min(LO,offer(WOf,WAg)); // the first offer is the best
+    .abolish(owner_state(_));
     .print("Winner is ",WAg," with ",WOf).
 
 +!winner(Id,LO,WAg) : .findall(offer(set_lights("on"),A),propose(Id,set_lights("on"))[source(A)],LO) & LO \== [] <- // there is a offer
     .print("Offers are ",LO);
     .min(LO,offer(WOf,WAg)); // the first offer is the best
+    .abolish(owner_state(_));
     .print("Winner is ",WAg," with ",WOf).
 
 

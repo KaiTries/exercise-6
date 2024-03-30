@@ -25,7 +25,6 @@ calenderState(_).
     !read_calendar. 
 
 +calendarState(State) : true <-
-    .send(personal_assistant,untell,calendarState(_)); // removes the current belief about the calendar state from the personal assistant
     .send(personal_assistant,tell,calendarState(State)); // updates the personal assistant about the current calendar state
     .print("The event is ", State).
 
