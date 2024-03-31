@@ -110,7 +110,7 @@ plan that is called first. -> Implicit ordering of plans
 @prefered_wakeup_method_natural_light_plan
 +!winner(Id,LO,WAg) : .findall(offer(set_blinds("raised"),A),propose(Id,set_blinds("raised"))[source(A)],LO) & LO \== [] /* & natural_light(Num) & best_option(Num) */ <- // there is a offer
     .print("Offers are ",LO);
-    .min(LO,offer(WOf,WAg)); // the first offer is the best
+    .min(LO,offer(WOf,WAg)); // It is a single offer so the first offer is the best
     .abolish(owner_state(_));
     /*
     -+natural_light(1)
@@ -121,7 +121,7 @@ plan that is called first. -> Implicit ordering of plans
 @prefered_wakeup_method_artificial_light_plan
 +!winner(Id,LO,WAg) : .findall(offer(set_lights("on"),A),propose(Id,set_lights("on"))[source(A)],LO) & LO \== [] /* & artificial_light(Num) & best_option(Num) */ <- // there is a offer
     .print("Offers are ",LO);
-    .min(LO,offer(WOf,WAg)); // the first offer is the best
+    .min(LO,offer(WOf,WAg)); // It is a single offer so the first offer is the best
     .abolish(owner_state(_));
     /*
     -+natural_light(0)
