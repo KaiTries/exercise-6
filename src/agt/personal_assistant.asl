@@ -12,7 +12,6 @@ best_option(Option):- Option = 0.
 // beliefs and inferenes needed for the CNP
 taskId(1). // to keep track of CNP tasks
 noOneWon(false). // to identify once both options where used
-triedDweets(0). // to keep track of the number of dweets sent
 
 all_proposals_received(CNPId,NP) :-              // NP = number of participants
      .count(propose(CNPId,_)[source(_)], NO) &   // number of proposes received
@@ -37,7 +36,7 @@ all_proposals_received(CNPId,NP) :-              // NP = number of participants
 @start_plan
 +!start : true <-
     !setupTool(C).
-    //!useDweet("HelloItsMe").
+
 
 @create_dweetArtifact_plan
 +!setupTool(C): true <- 
@@ -45,7 +44,8 @@ all_proposals_received(CNPId,NP) :-              // NP = number of participants
 
 @send_dweet_plan
 +!useDweet(Action, Receiver, Performative, Content): true <-
-    sendDweet(Action, Receiver, Performative, Content).
+    sendDweet(Action, Receiver, Performative, Content,Response);
+    .print("Dweet sent with status code: ",Response).
 
 @calender_now_owner_awake_plan
 +calendarState("now"): owner_state("awake") <- 
@@ -69,6 +69,20 @@ all_proposals_received(CNPId,NP) :-              // NP = number of participants
 +!wakeUpRoutine: true & taskId(Num) <-
     !cnp(Num, "increaseIlluminance");
     -+taskId(Num + 1).
+
+@owner_asleep_calendar_now_tried_everyting_plan
++owner_state("asleep"): calendarState("now") & noOneWon(true) <-
+    .print("Tried everything. Continuing to send dweet to friends");
+    !useDweet(send, "alice, bob, eve", achieve, help_friend_to_wake_up(kai));
+    .abolish(owner_state(_)).
+
+@calendar_now_owner_asleep_tried_everyting_plan
++calendarState("now"): owner_state("asleep") & noOneWon(true) <-
+    .print("Tried everything. Continuing to send dweet to friends");
+    !useDweet(send, "alice, bob, eve", achieve, help_friend_to_wake_up(kai));
+    .abolish(owner_state(_)).
+
+
 
 @cnp
 +!cnp(Id,Task) <- 
@@ -99,24 +113,35 @@ all_proposals_received(CNPId,NP) :-              // NP = number of participants
 /*
 We do not need to set a prefered wakeup method if we just write the plan for the prefered method first since this will be the 
 plan that is called first. -> Implicit ordering of plans
+-> We can explicitly follow the ordering if we uncomment the code snippets in the code below
 */
-+!winner(Id,LO,WAg) : .findall(offer(set_blinds("raised"),A),propose(Id,set_blinds("raised"))[source(A)],LO) & LO \== [] <- // there is a offer
++!winner(Id,LO,WAg) : .findall(offer(set_blinds("raised"),A),propose(Id,set_blinds("raised"))[source(A)],LO) & LO \== [] /* & natural_light(Num) & best_option(Num) */ <- // there is a offer
     .print("Offers are ",LO);
     .min(LO,offer(WOf,WAg)); // the first offer is the best
     .abolish(owner_state(_));
+    /*
+    -+natural_light(1)
+    -+artificial_light(0)
+    */
     .print("Winner is ",WAg," with ",WOf).
 
-+!winner(Id,LO,WAg) : .findall(offer(set_lights("on"),A),propose(Id,set_lights("on"))[source(A)],LO) & LO \== [] <- // there is a offer
++!winner(Id,LO,WAg) : .findall(offer(set_lights("on"),A),propose(Id,set_lights("on"))[source(A)],LO) & LO \== [] /* & artificial_light(Num) & best_option(Num) */ <- // there is a offer
     .print("Offers are ",LO);
     .min(LO,offer(WOf,WAg)); // the first offer is the best
     .abolish(owner_state(_));
+    /*
+    -+natural_light(0)
+    -+artificial_light(1)
+    */
     .print("Winner is ",WAg," with ",WOf).
 
 
 +!winner(_,_,nowinner) <-
     -+noOneWon(true); // flag that no one won
     .print("no winner. Asking a friend for help"); // no offer case
-    !useDweet(send, "alice, bob, eve", achieve, help_friend_to_wake_up(kai)).
+    !useDweet(send, "alice, bob, eve", achieve, help_friend_to_wake_up(kai));
+    .abolish(owner_state(_)).
+
 
 
 +!result(_,[],_).

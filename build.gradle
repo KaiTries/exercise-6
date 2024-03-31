@@ -22,6 +22,7 @@ repositories {
 dependencies {
     implementation('org.jacamo:jacamo:1.1')
     implementation ('com.github.HyperAgents:jacamo-hypermedia:main-SNAPSHOT')
+    implementation('com.fasterxml.jackson.core:jackson-databind:2.13.0')
 }
 
 sourceSets {

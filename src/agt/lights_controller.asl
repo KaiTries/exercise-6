@@ -33,7 +33,6 @@ lights("off").
     -+lights(LightsState).
 
 +lights(State) : true <-
-    .send(personal_assistant,untell,lights(_)); // remove old belief
     .send(personal_assistant,tell,lights(State)); // tell the new belief
     .print("The lights are ", State).
 

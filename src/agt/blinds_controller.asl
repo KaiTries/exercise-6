@@ -35,7 +35,6 @@ blinds("lowered").
     -+blinds(BlindsState).
 
 +blinds(State) : true <-
-    .send(personal_assistant,untell,blinds(_)); // remove old belief
     .send(personal_assistant,tell,blinds(State)); // tell the new belief
     .print("The blinds are ", State).
 
