@@ -65,11 +65,6 @@ all_proposals_received(CNPId,NP) :-              // NP = number of participants
     .print("Starting wake up routine");
     !wakeUpRoutine.
 
-@start_wakeUpRoutine_plan
-+!wakeUpRoutine: true & taskId(Num) <-
-    !cnp(Num, "increaseIlluminance");
-    -+taskId(Num + 1).
-
 @owner_asleep_calendar_now_tried_everyting_plan
 +owner_state("asleep"): calendarState("now") & noOneWon(true) <-
     .print("Tried everything. Continuing to send dweet to friends");
@@ -82,6 +77,10 @@ all_proposals_received(CNPId,NP) :-              // NP = number of participants
     !useDweet(send, "alice, bob, eve", achieve, help_friend_to_wake_up(kai));
     .abolish(owner_state(_)).
 
+@start_wakeUpRoutine_plan
++!wakeUpRoutine: true & taskId(Num) <-
+    !cnp(Num, "increaseIlluminance");
+    -+taskId(Num + 1).
 
 @cnp
 +!cnp(Id,Task) <- 
